@@ -858,7 +858,7 @@
                 <div class="tab-header">
                     <div class="tab active" data-tab="personal-info">个人信息</div>
                     <div class="tab" data-tab="period-info">账期信息</div>
-                    <div class="tab" data-tab="finance-info">财务统计</div>
+                    <div class="tab" data-tab="health-dashboard">检测仪表</div>
                     <div class="tab" data-tab="indicators-compare">指标对比</div>
                     
                     <div class="header-icons">
@@ -902,34 +902,84 @@
                 </div>
                 
                 <!-- 财务统计标签页 -->
-                <div id="finance-info" class="tab-content">
-                    <div class="finance-header">
-                        <h3>财务统计概览</h3>
-                        <button id="addFinanceRecordBtn" class="btn btn-primary">添加财务记录</button>
+                <div id="health-dashboard" class="tab-content">
+    <div class="dashboard-charts-area" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+        <div style="background: #f8f9fa; height: 200px; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #999;">
+            📊 趋势图表位 1 (待开发)
+        </div>
+        <div style="background: #f8f9fa; height: 200px; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #999;">
+            📈 趋势图表位 2 (待开发)
+        </div>
+        <div style="background: #f8f9fa; height: 200px; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #999;">
+            📉 趋势图表位 3 (待开发)
+        </div>
+        <div style="background: #f8f9fa; height: 200px; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #999;">
+            🩺 趋势图表位 4 (待开发)
+        </div>
+    </div>
+
+    <div class="ai-entry-section" style="background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); overflow: hidden;">
+        <div class="section-header" style="padding: 15px 20px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; background: #fafafa;">
+            <h3 style="margin: 0; font-size: 16px; color: #333;">🤖 智能报告录入</h3>
+            <div class="actions">
+                <input type="file" id="reportUploadInput" accept="image/*" style="display: none;">
+                <button id="uploadReportBtn" class="btn btn-primary" style="background: #203F9A;">📸 上传体检单 (AI解析)</button>
+            </div>
+        </div>
+
+        <div id="aiWorkspace" style="display: none; padding: 20px; display: flex; gap: 20px; height: 600px;">
+            <div class="preview-pane" style="flex: 1; background: #333; border-radius: 8px; overflow: hidden; position: relative; display: flex; align-items: center; justify-content: center;">
+                <img id="reportPreviewImg" src="" style="max-width: 100%; max-height: 100%; object-fit: contain;">
+            </div>
+
+            <div class="audit-pane" style="flex: 1; display: flex; flex-direction: column; gap: 10px;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <div class="form-group">
+                        <label>检测日期</label>
+                        <input type="date" id="ai_reportDate">
                     </div>
-                    
-                    <div class="finance-chart-container">
-                        <div id="financeChart" class="finance-chart">
-                            <!-- 财务图表将通过JS动态生成 -->
-                        </div>
-                        <!-- 删除提示文字 -->
+                    <div class="form-group">
+                        <label>检测机构</label>
+                        <input type="text" id="ai_hospital">
                     </div>
-                    
-                    <div class="finance-summary">
-                        <h4>分类统计</h4>
-                        <table class="finance-table" id="financeSummaryTable">
-                            <thead>
-                                <tr>
-                                    <th>主分类</th>
-                                    <th>金额总和</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <!-- 财务统计数据将通过JS动态生成 -->
-                            </tbody>
-                        </table>
+                    <div class="form-group full-width">
+                        <label>检测项目/类别</label>
+                        <input type="text" id="ai_category">
                     </div>
                 </div>
+
+                <div class="form-group">
+                    <label style="color: #d9534f; font-weight: bold;">⚠️ 结论摘要 & 风险提示</label>
+                    <textarea id="ai_summary" rows="3" style="background: #fff5f5; border-color: #d9534f;"></textarea>
+                </div>
+
+                <div class="items-list" style="flex: 1; overflow-y: auto; border: 1px solid #eee; border-radius: 4px;">
+                    <table id="aiItemsTable" style="width: 100%; font-size: 13px;">
+                        <thead style="position: sticky; top: 0; background: #eee;">
+                            <tr>
+                                <th>指标名称</th>
+                                <th>数值</th>
+                                <th>单位</th>
+                                <th>参考</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+
+                <div style="padding-top: 10px; border-top: 1px solid #eee; text-align: right;">
+                    <button id="cancelAiBtn" class="btn btn-secondary">取消</button>
+                    <button id="confirmAiBtn" class="btn btn-success" style="font-weight: bold;">✅ 确认入库</button>
+                </div>
+            </div>
+        </div>
+        
+        <div id="aiEmptyState" style="padding: 50px; text-align: center; color: #999;">
+            <p>请点击右上角“上传体检单”开始工作</p>
+        </div>
+    </div>
+</div>
                 
                 <!-- 指标对比标签页 -->
                 <div id="indicators-compare" class="tab-content">
@@ -1265,6 +1315,123 @@
     </div>
 
     <script>
+// === AI 智能解析逻辑 ===
+
+// 1. 绑定上传按钮
+document.getElementById('uploadReportBtn').addEventListener('click', () => {
+    document.getElementById('reportUploadInput').click();
+});
+
+// 2. 处理文件选择
+document.getElementById('reportUploadInput').addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // 显示加载中...
+    const btn = document.getElementById('uploadReportBtn');
+    const originText = btn.innerText;
+    btn.innerText = "⏳ AI 正在读取中...";
+    btn.disabled = true;
+
+    try {
+        // 转 Base64
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = async () => {
+            const base64Img = reader.result;
+            
+            // 显示预览
+            document.getElementById('reportPreviewImg').src = base64Img;
+            document.getElementById('aiWorkspace').style.display = 'flex'; // 这里修正为flex布局
+            document.getElementById('aiEmptyState').style.display = 'none';
+
+            // 调用后端 API
+            const token = localStorage.getItem('crm_token');
+            const response = await fetch(`${API_BASE_URL}/api/analyze_report`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ image: base64Img })
+            });
+
+            if (!response.ok) throw new Error("AI 解析失败");
+            
+            const result = await response.json();
+            
+            // 填充表单
+            document.getElementById('ai_reportDate').value = result.report_date || '';
+            document.getElementById('ai_hospital').value = result.hospital || '';
+            document.getElementById('ai_category').value = result.category || '';
+            document.getElementById('ai_summary').value = result.summary || '';
+
+            // 填充表格
+            const tbody = document.querySelector('#aiItemsTable tbody');
+            tbody.innerHTML = '';
+            (result.items || []).forEach(item => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><input type="text" value="${item.name}" style="width:100%; border:none;"></td>
+                    <td><input type="text" value="${item.value}" style="width:100%; border:none; font-weight:bold; color:#203F9A;"></td>
+                    <td><input type="text" value="${item.unit}" style="width:100%; border:none;"></td>
+                    <td><input type="text" value="${item.reference}" style="width:100%; border:none; color:#999;"></td>
+                    <td><span style="cursor:pointer; color:red;" onclick="this.closest('tr').remove()">×</span></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        };
+
+    } catch (error) {
+        alert("解析出错: " + error.message);
+        console.error(error);
+    } finally {
+        btn.innerText = originText;
+        btn.disabled = false;
+    }
+});
+
+// 3. 确认入库逻辑
+document.getElementById('confirmAiBtn').addEventListener('click', async () => {
+    // 收集校对后的数据
+    const items = [];
+    document.querySelectorAll('#aiItemsTable tbody tr').forEach(tr => {
+        const inputs = tr.querySelectorAll('input');
+        items.push({
+            name: inputs[0].value,
+            value: inputs[1].value,
+            unit: inputs[2].value,
+            reference: inputs[3].value,
+            measurementDate: document.getElementById('ai_reportDate').value,
+            testingInstitution: document.getElementById('ai_hospital').value
+        });
+    });
+
+    // 构造要保存的数据结构 (追加到 abnormalIndicators)
+    if (!ViewController.currentPeriod.abnormalIndicators) {
+        ViewController.currentPeriod.abnormalIndicators = [];
+    }
+    
+    // 合并数据
+    ViewController.currentPeriod.abnormalIndicators.push(...items);
+    
+    // 如果有摘要，可以考虑追加到某个备注里，或者新建一个字段存摘要
+    // 暂时先追加到 "主观健康感受" 里做演示，后续建议数据库加字段
+    if(document.getElementById('ai_summary').value) {
+        const summary = `【${document.getElementById('ai_reportDate').value} 体检摘要】\n` + document.getElementById('ai_summary').value;
+        ViewController.currentPeriod.subjectiveHealth = (ViewController.currentPeriod.subjectiveHealth || '') + '\n\n' + summary;
+    }
+
+    // 保存
+    await ViewController.savePeriodInfo();
+    
+    alert("✅ 成功入库！");
+    // 清理界面
+    document.getElementById('aiWorkspace').style.display = 'none';
+    document.getElementById('aiEmptyState').style.display = 'block';
+    // 刷新指标列表
+    ViewController.renderIndicatorsCompare();
+});
 
         // ==========================================
 // 🌍 1. 网络与安全配置

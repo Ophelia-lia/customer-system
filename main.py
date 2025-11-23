@@ -251,6 +251,81 @@ def delete_single_customer(customer_id: str, session: Session = Depends(get_sess
     except Exception as e:
         session.rollback()
         raise HTTPException(status_code=500, detail=str(e))
+    # ==========================================
+# 🧠 AI 智能解析模块 (兼容模式: OpenAI/Zhipu)
+# ==========================================
+from openai import OpenAI
+import base64
+
+# ⚠️ 请将此处替换为你的智谱 API Key (或从环境变量读取)
+# 申请地址: https://open.bigmodel.cn/
+AI_API_KEY = "54de844a60d64e8bb0e06fd7b4744676.L3qNYV8mfntSmzVg" 
+AI_BASE_URL = "https://open.bigmodel.cn/api/paas/v4/" # 智谱的兼容地址
+AI_MODEL = "glm-4v" # 智谱的视觉模型
+
+# 初始化客户端 (标准 OpenAI 协议)
+ai_client = OpenAI(api_key=AI_API_KEY, base_url=AI_BASE_URL)
+
+class ReportAnalysisResult(BaseModel):
+    report_date: str
+    hospital: str
+    category: str
+    summary: str
+    items: List[Dict[str, Any]]
+
+@app.post("/api/analyze_report")
+def analyze_report(file_data: Dict[str, str], current_user: dict = Depends(get_current_user)):
+    """
+    接收 Base64 图片，调用 AI 进行 OCR 和结构化提取
+    """
+    try:
+        # 1. 获取图片数据 (前端传来的 base64 字符串)
+        image_base64 = file_data.get("image")
+        if not image_base64:
+            raise HTTPException(status_code=400, detail="Image data required")
+
+        # 去掉 data:image/jpeg;base64, 前缀（如果存在）
+        if "," in image_base64:
+            image_base64 = image_base64.split(",")[1]
+
+        # 2. 构造 Prompt (指挥官指令)
+        system_prompt = """
+        你是一个资深的医疗数据录入专家。请提取图片中的体检报告数据。
+        请严格按以下 JSON 格式返回，不要包含 markdown 格式符号：
+        {
+            "report_date": "YYYY-MM-DD (优先提取采样/检测日期)",
+            "hospital": "检测机构名称",
+            "category": "检测类别(如:血常规/生化全项)",
+            "summary": "结论摘要与医生建议(简练总结)",
+            "items": [
+                {"name": "指标名称", "value": "数值(尽量转数字)", "unit": "单位", "reference": "参考范围", "status": "异常状态(偏高/偏低/正常)"}
+            ]
+        }
+        注意：如果图中没有某项信息，填空字符串。数值中包含 > < 等符号请保留在 value 字段中。
+        """
+
+        # 3. 发起调用 (兼容模式核心)
+        response = ai_client.chat.completions.create(
+            model=AI_MODEL,
+            messages=[
+                {"role": "system", "content": "You are a helpful medical assistant."},
+                {"role": "user", "content": [
+                    {"type": "text", "text": system_prompt},
+                    {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{image_base64}"}}
+                ]}
+            ],
+            temperature=0.1, #以此降低胡说八道的概率
+        )
+
+        # 4. 解析返回结果
+        ai_content = response.choices[0].message.content
+        # 清洗一下可能存在的 Markdown 符号
+        ai_content = ai_content.replace("```json", "").replace("```", "").strip()
         
+        return json.loads(ai_content)
+
+    except Exception as e:
+        print(f"AI Analysis Error: {e}")
+        raise HTTPException(status_code=500, detail=f"AI解析失败: {str(e)}")    
 # 挂载静态文件 (必须放在最后，否则会拦截 API 请求)
 app.mount("/", StaticFiles(directory="static", html=True), name="static")
