@@ -4,8 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TC-测试服</title>
-    <!-- 引入Dexie.js库 -->
-    <script src="https://unpkg.com/dexie@3.2.4/dist/dexie.js"></script>
     <style>
         /* 全局样式 */
         * {
@@ -901,7 +899,7 @@
                     </div>
                 </div>
                 
-                <!-- 财务统计标签页 -->
+                <!-- 检测仪表标签页 -->
                 <div id="health-dashboard" class="tab-content">
     <div class="dashboard-charts-area" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
         <div style="background: #f8f9fa; height: 200px; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #999;">
@@ -990,110 +988,6 @@
                     <div id="indicatorsTableContainer">
                         <!-- 指标对比表格将通过JS动态生成 -->
                     </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- 财务详情模态框 -->
-        <div id="financeModal" class="modal">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h3 id="financeModalTitle">财务记录详情</h3>
-                    <button class="close-modal">&times;</button>
-                </div>
-                <div class="modal-body">
-                    <!-- 财务记录内容将通过JS动态生成 -->
-                </div>
-            </div>
-        </div>
-        
-        <!-- 添加/编辑财务记录模态框 -->
-        <div id="financeRecordModal" class="modal">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h3 id="financeRecordModalTitle">添加财务记录</h3>
-                    <button class="close-modal">&times;</button>
-                </div>
-                <div class="modal-body">
-                    <form id="financeRecordForm">
-                        <div class="form-group">
-                            <label for="financePeriod">账期</label>
-                            <select id="financePeriod" required>
-                                <!-- 账期选项将通过JS动态生成 -->
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="financeMainCategory">主分类</label>
-                            <select id="financeMainCategory" required>
-                                <option value="订单记录">订单记录</option>
-                                <option value="成本记录">成本记录</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="financeSubCategory">子分类</label>
-                            <select id="financeSubCategory" required>
-                                <!-- 子分类选项将通过JS动态生成 -->
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="financeAmount">金额</label>
-                            <input type="number" id="financeAmount" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="financeDate">日期</label>
-                            <input type="date" id="financeDate" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="financeNotes">备注</label>
-                            <textarea id="financeNotes" rows="3"></textarea>
-                        </div>
-                        <div class="button-group">
-                            <button type="submit" class="btn btn-primary" id="saveFinanceRecordBtn">保存</button>
-                            <button type="button" class="btn btn-secondary" id="cancelFinanceRecordBtn">取消</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-        
-        <!-- 添加账期模态框 -->
-        <div id="addPeriodModal" class="modal">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h3>添加新账期</h3>
-                    <button class="close-modal">&times;</button>
-                </div>
-                <div class="modal-body">
-                    <form id="addPeriodForm">
-                        <div class="form-group">
-                            <label for="newPeriodDate">账期日期</label>
-                            <input type="date" id="newPeriodDate" required>
-                        </div>
-                        <button type="submit" class="btn btn-primary">添加</button>
-                    </form>
-                </div>
-            </div>
-        </div>
-        
-        <!-- 修改账期模态框 -->
-        <div id="editPeriodModal" class="modal">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h3>修改账期</h3>
-                    <button class="close-modal">&times;</button>
-                </div>
-                <div class="modal-body">
-                    <form id="editPeriodForm">
-                        <div class="form-group">
-                            <label for="editPeriodNumber">账期编号</label>
-                            <input type="text" id="editPeriodNumber" readonly>
-                        </div>
-                        <div class="form-group">
-                            <label for="editPeriodDate">账期日期</label>
-                            <input type="date" id="editPeriodDate" required>
-                        </div>
-                        <button type="submit" class="btn btn-primary">修改</button>
-                    </form>
                 </div>
             </div>
         </div>
@@ -1412,25 +1306,30 @@ document.getElementById('confirmAiBtn').addEventListener('click', async () => {
         ViewController.currentPeriod.abnormalIndicators = [];
     }
     
-    // 合并数据
+    // 【核心】合并数据
     ViewController.currentPeriod.abnormalIndicators.push(...items);
     
-    // 如果有摘要，可以考虑追加到某个备注里，或者新建一个字段存摘要
-    // 暂时先追加到 "主观健康感受" 里做演示，后续建议数据库加字段
+    // 如果有摘要，追加到备注
     if(document.getElementById('ai_summary').value) {
         const summary = `【${document.getElementById('ai_reportDate').value} 体检摘要】\n` + document.getElementById('ai_summary').value;
         ViewController.currentPeriod.subjectiveHealth = (ViewController.currentPeriod.subjectiveHealth || '') + '\n\n' + summary;
     }
 
-    // 保存
-    await ViewController.savePeriodInfo();
+    // 1. 立即保存到后端
+    await ViewController.savePeriodInfo(); 
     
-    alert("✅ 成功入库！");
-    // 清理界面
+    // 2. 清理界面 (防止重复点击入库)
     document.getElementById('aiWorkspace').style.display = 'none';
     document.getElementById('aiEmptyState').style.display = 'block';
-    // 刷新指标列表
-    ViewController.renderIndicatorsCompare();
+    
+    // 3. 强制切换到指标对比页，让用户看到最终结果，而不是留在确认页
+    ViewController.switchTab('indicators-compare'); 
+    
+    // 4. 通知用户并清空当前客户的附件列表（防止下次误用）
+    ViewController.showSaveNotification();
+    ViewController.currentPeriod.attachments = []; 
+    // 重绘账期表单，清除附件显示
+    ViewController.renderPeriodForm(ViewController.currentPeriod); 
 });
 
         // ==========================================
@@ -1444,15 +1343,6 @@ const API_BASE_URL = "https://crm-test-se2k.onrender.com";
 // 🔒 安全检查
 const token = localStorage.getItem('crm_token');
 // if (!token) window.location.href = 'login.html'; // 调试期先注释
-
-        // 定义Dexie数据库
-        const db = new Dexie('CustomerManagementSystem');
-        
-        // 定义数据库结构
-        db.version(1).stores({
-            customers: 'id, personalInfo.name, personalInfo.customerService, personalInfo.nextDeliveryDate',
-            settings: 'key'
-        });
 
         // 数据模型 - 修改为使用Dexie.js
         const CustomerModel = {
@@ -1506,49 +1396,7 @@ const token = localStorage.getItem('crm_token');
             return false;
         }
     },
-            
-            // 迁移旧数据
-            async migrateOldData() {
-                try {
-                    // 检查是否已经迁移过
-                    const migrationFlag = await db.settings.get('migrationCompleted');
-                    if (migrationFlag && migrationFlag.value === true) {
-                        console.log('数据已迁移，跳过迁移过程');
-                        return;
-                    }
-                    
-                    // 检查localStorage中是否有旧数据
-                    const oldData = localStorage.getItem('customerManagementSystem');
-                    if (!oldData) {
-                        console.log('没有找到旧数据，跳过迁移');
-                        // 标记迁移完成
-                        await db.settings.put({ key: 'migrationCompleted', value: true });
-                        return;
-                    }
-                    
-                    console.log('开始迁移旧数据...');
-                    
-                    // 解析旧数据
-                    const parsedData = JSON.parse(oldData);
-                    
-                    // 保存到Dexie
-                    const success = await this.saveData(parsedData);
-                    
-                    if (success) {
-                        console.log('数据迁移成功');
-                        // 标记迁移完成
-                        await db.settings.put({ key: 'migrationCompleted', value: true });
-                        
-                        // 可选：删除localStorage中的旧数据
-                        // localStorage.removeItem('customerManagementSystem');
-                    } else {
-                        console.error('数据迁移失败');
-                    }
-                } catch (error) {
-                    console.error('迁移数据时出错:', error);
-                }
-            },
-            
+      
             // 生成客户ID
             generateCustomerId(data) {
         const id = `C${data.nextCustomerId.toString().padStart(5, '0')}`;
@@ -1680,9 +1528,6 @@ const token = localStorage.getItem('crm_token');
             importFiles: [], // 新增：导入文件列表
             
             async init() {
-                // 先迁移旧数据
-                await CustomerModel.migrateOldData();
-                
                 this.bindEvents();
                 this.showPage('customer-list');
                 this.renderCustomerList();
@@ -1755,59 +1600,6 @@ const token = localStorage.getItem('crm_token');
                     this.showDeleteCustomerModal();
                 });
                 
-                // 账期相关事件
-                document.getElementById('refreshPeriodBtn').addEventListener('click', () => {
-                    this.refreshPeriod();
-                });
-                
-                document.getElementById('addPeriodBtn').addEventListener('click', () => {
-                    this.showAddPeriodModal();
-                });
-                
-                // 新增：修改账期按钮事件
-                document.getElementById('editPeriodBtn').addEventListener('click', () => {
-                    this.showEditPeriodModal();
-                });
-                
-                // 账期选择变化事件
-                document.getElementById('periodSelect').addEventListener('change', () => {
-                    this.refreshPeriod();
-                });
-                
-                // 财务相关事件
-                document.getElementById('addFinanceRecordBtn').addEventListener('click', () => {
-                    this.showFinanceRecordModal();
-                });
-                
-                // 标签页切换事件
-                document.querySelectorAll('.tab').forEach(tab => {
-                    tab.addEventListener('click', () => {
-                        this.switchTab(tab.getAttribute('data-tab'));
-                    });
-                });
-                
-                // 模态框关闭事件
-                document.querySelectorAll('.close-modal').forEach(btn => {
-                    btn.addEventListener('click', () => {
-                        this.closeModal(btn.closest('.modal'));
-                    });
-                });
-                
-                // 财务图表点击事件 - 修改：添加订单总额背景点击事件
-                document.addEventListener('click', (e) => {
-                    if (e.target.classList.contains('finance-chart') || 
-                        e.target.classList.contains('chart-segment') ||
-                        e.target.classList.contains('order-total-background')) {
-                        const category = e.target.getAttribute('data-category');
-                        if (category) {
-                            this.showFinanceModal(category);
-                        } else if (e.target.classList.contains('order-total-background')) {
-                            // 点击订单总额背景
-                            this.showFinanceModal('订单记录');
-                        }
-                    }
-                });
-                
                 // 导入导出事件
                 document.getElementById('exportDataBtn').addEventListener('click', () => {
                     this.showExportDataModal();
@@ -1815,15 +1607,6 @@ const token = localStorage.getItem('crm_token');
                 
                 document.getElementById('exportWordBtn').addEventListener('click', () => {
                     this.showExportWordModal();
-                });
-                
-                // 修改：移除原来的导出财务Excel事件，添加新的下拉菜单事件
-                document.getElementById('exportFinanceExcelBtn').addEventListener('click', () => {
-                    this.exportFinanceExcel();
-                });
-                
-                document.getElementById('exportIndicatorsExcelBtn').addEventListener('click', () => {
-                    this.exportIndicatorsExcel();
                 });
                 
                 // 新增：导出客户列表Excel事件
@@ -1890,17 +1673,7 @@ const token = localStorage.getItem('crm_token');
                     e.preventDefault();
                     this.editPeriod();
                 });
-                
-                // 财务记录表单提交事件
-                document.getElementById('financeRecordForm').addEventListener('submit', (e) => {
-                    e.preventDefault();
-                    this.saveFinanceRecord();
-                });
-                
-                document.getElementById('cancelFinanceRecordBtn').addEventListener('click', () => {
-                    this.closeModal(document.getElementById('financeRecordModal'));
-                });
-                
+
                 // 导入指标表单提交事件
                 document.getElementById('importIndicatorsForm').addEventListener('submit', (e) => {
                     e.preventDefault();
@@ -1944,12 +1717,7 @@ const token = localStorage.getItem('crm_token');
                 document.getElementById('cancelDeleteBtn').addEventListener('click', () => {
                     this.closeModal(document.getElementById('deleteConfirmModal'));
                 });
-                
-                // 财务主分类变化事件
-                document.getElementById('financeMainCategory').addEventListener('change', (e) => {
-                    this.updateFinanceSubCategory(e.target.value);
-                });
-                
+
                 // 折叠面板事件
                 document.addEventListener('click', (e) => {
                     if (e.target.classList.contains('collapse-header')) {
@@ -2179,11 +1947,6 @@ const token = localStorage.getItem('crm_token');
                 // 渲染个人信息表单
                 this.renderPersonalInfoForm(customer);
                 
-                // 渲染账期选择器
-                this.renderPeriodSelector(customer);
-                
-                // 渲染财务图表
-                this.renderFinanceChart(customer);
                 
                 // 渲染指标对比
                 this.renderIndicatorsCompare();
@@ -3016,136 +2779,6 @@ const token = localStorage.getItem('crm_token');
                 await this.savePeriodInfo(false);
             },
             
-            // 渲染财务图表 - 修改：添加订单总额背景点击功能
-            renderFinanceChart(customer) {
-                const chartElement = document.getElementById('financeChart');
-                chartElement.innerHTML = '';
-                
-                // 计算订单记录总额
-                let orderTotal = 0;
-                if (customer.periods) {
-                    customer.periods.forEach(period => {
-                        if (period.financialStats) {
-                            period.financialStats.forEach(record => {
-                                if (record.mainCategory === '订单记录') {
-                                    orderTotal += record.amount;
-                                }
-                            });
-                        }
-                    });
-                }
-                
-                // 计算成本记录分类
-                const costCategories = {};
-                if (customer.periods) {
-                    customer.periods.forEach(period => {
-                        if (period.financialStats) {
-                            period.financialStats.forEach(record => {
-                                if (record.mainCategory === '成本记录') {
-                                    if (!costCategories[record.subCategory]) {
-                                        costCategories[record.subCategory] = 0;
-                                    }
-                                    costCategories[record.subCategory] += record.amount;
-                                }
-                            });
-                        }
-                    });
-                }
-                
-                if (orderTotal === 0) {
-                    chartElement.innerHTML = '<div style="padding: 10px; text-align: center;">暂无财务数据</div>';
-                    // 清空统计表格
-                    this.renderFinanceSummaryTable({}, 0);
-                    return;
-                }
-                
-                // 生成图表HTML
-                let chartHTML = '';
-                
-                // 先添加订单记录部分（灰色背景）- 修改：添加类名和点击事件
-                chartHTML += `<div class="chart-segment order-total-background" style="width: 100%; background-color: #EFE8E0; cursor: pointer;" data-category="订单记录"></div>`;
-                
-                // 然后添加成本记录部分（覆盖在订单记录上）
-                let left = 0;
-                Object.keys(costCategories).forEach(category => {
-                    const width = (costCategories[category] / orderTotal) * 100;
-                    const color = this.getCategoryColor(category);
-                    
-                    chartHTML += `
-                        <div class="chart-segment" 
-                             style="width: ${width}%; background-color: ${color}; position: absolute; left: ${left}%" 
-                             data-category="${category}" 
-                             data-amount="${costCategories[category]}">
-                        </div>
-                    `;
-                    
-                    left += width;
-                });
-                
-                chartElement.innerHTML = chartHTML;
-                
-                // 添加总额显示
-                const totalElement = document.createElement('div');
-                totalElement.style.position = 'absolute';
-                totalElement.style.top = '50%';
-                totalElement.style.left = '50%';
-                totalElement.style.transform = 'translate(-50%, -50%)';
-                totalElement.style.color = '#333';
-                totalElement.style.fontWeight = 'bold';
-                totalElement.textContent = `订单总额: ${orderTotal}`;
-                
-                chartElement.style.position = 'relative';
-                chartElement.appendChild(totalElement);
-                
-                // 渲染财务统计表格
-                this.renderFinanceSummaryTable(costCategories, orderTotal);
-            },
-            
-            // 渲染财务统计表格 - 修改：为所有分类行添加点击事件
-            renderFinanceSummaryTable(categories, orderTotal) {
-                const tableBody = document.querySelector('#financeSummaryTable tbody');
-                tableBody.innerHTML = '';
-                
-                // 添加订单记录行 - 修改：添加点击事件
-                const orderRow = document.createElement('tr');
-                orderRow.innerHTML = `
-                    <td>订单记录</td>
-                    <td>${orderTotal}</td>
-                `;
-                orderRow.style.cursor = 'pointer';
-                orderRow.addEventListener('click', () => {
-                    this.showFinanceModal('订单记录');
-                });
-                tableBody.appendChild(orderRow);
-                
-                // 添加成本记录行 - 修改：为所有成本分类行添加点击事件
-                Object.keys(categories).forEach(category => {
-                    const row = document.createElement('tr');
-                    const percentage = orderTotal > 0 ? ((categories[category] / orderTotal) * 100).toFixed(2) : 0;
-                    row.innerHTML = `
-                        <td>${category}</td>
-                        <td>${categories[category]} (${percentage}%)</td>
-                    `;
-                    row.style.cursor = 'pointer';
-                    row.addEventListener('click', () => {
-                        this.showFinanceModal(category);
-                    });
-                    tableBody.appendChild(row);
-                });
-            },
-            
-            // 获取类别颜色（使用新的配色方案）
-            getCategoryColor(category) {
-                const colors = {
-                    '提成类': '#203F9A',
-                    '方案费用类': '#94C2DA',
-                    '工本费': '#E84797',
-                    '其他费用': '#E7A0CC'
-                };
-                
-                return colors[category] || '#4E7CB2';
-            },
-            
             // 渲染指标对比
             renderIndicatorsCompare() {
                 if (!this.currentCustomer) return;
@@ -3423,14 +3056,11 @@ const token = localStorage.getItem('crm_token');
                 document.getElementById(tabName).classList.add('active');
                 
                 // 使用setTimeout延迟渲染，避免抖动
-                if (tabName === 'finance-info') {
+                if (tabName === 'indicators-compare') {
                     setTimeout(() => {
-                        this.renderFinanceChart(this.currentCustomer);
-                    }, 10);
-                } else if (tabName === 'indicators-compare') {
-                    setTimeout(() => {
-                        this.renderIndicatorsCompare();
-                    }, 10);
+            this.renderIndicatorsCompare();
+        }, 10);
+    } else if (tabName === 'health-dashboard') {
                 }
             },
             
@@ -3639,282 +3269,7 @@ const token = localStorage.getItem('crm_token');
                 this.currentCustomer.personalInfo.nextDeliveryDate = nextDeliveryDate;
                 this.saveCustomerData();
             },
-            
-            // 显示财务记录模态框
-            showFinanceRecordModal(record = null) {
-                const modal = document.getElementById('financeRecordModal');
-                const title = document.getElementById('financeRecordModalTitle');
-                const form = document.getElementById('financeRecordForm');
                 
-                // 设置模态框标题
-                if (record) {
-                    title.textContent = '编辑财务记录';
-                    this.editingFinanceRecord = record;
-                } else {
-                    title.textContent = '添加财务记录';
-                    this.editingFinanceRecord = null;
-                }
-                
-                // 填充账期选择器
-                const periodSelect = document.getElementById('financePeriod');
-                periodSelect.innerHTML = '';
-                if (this.currentCustomer.periods) {
-                    this.currentCustomer.periods.forEach(period => {
-                        const option = document.createElement('option');
-                        option.value = period.periodId;
-                        option.textContent = period.periodName;
-                        periodSelect.appendChild(option);
-                    });
-                }
-                
-                // 更新子分类选项
-                this.updateFinanceSubCategory('订单记录');
-                
-                // 如果正在编辑记录，填充表单数据
-                if (record) {
-                    document.getElementById('financePeriod').value = record.periodId;
-                    document.getElementById('financeMainCategory').value = record.mainCategory;
-                    this.updateFinanceSubCategory(record.mainCategory);
-                    document.getElementById('financeSubCategory').value = record.subCategory;
-                    document.getElementById('financeAmount').value = record.amount;
-                    document.getElementById('financeDate').value = record.date;
-                    document.getElementById('financeNotes').value = record.notes || '';
-                } else {
-                    // 重置表单
-                    form.reset();
-                    // 设置默认日期为今天
-                    document.getElementById('financeDate').value = new Date().toISOString().split('T')[0];
-                }
-                
-                modal.classList.add('active');
-            },
-            
-            // 更新财务子分类选项
-            updateFinanceSubCategory(mainCategory) {
-                const subCategorySelect = document.getElementById('financeSubCategory');
-                subCategorySelect.innerHTML = '';
-                
-                let options = [];
-                if (mainCategory === '订单记录') {
-                    options = ['4w', '8w', '16w'];
-                } else if (mainCategory === '成本记录') {
-                    options = ['提成类', '方案费用类', '工本费', '其他费用'];
-                }
-                
-                options.forEach(option => {
-                    const opt = document.createElement('option');
-                    opt.value = option;
-                    opt.textContent = option;
-                    subCategorySelect.appendChild(opt);
-                });
-            },
-            
-            // 保存财务记录
-            async saveFinanceRecord() {
-                const periodId = document.getElementById('financePeriod').value;
-                const mainCategory = document.getElementById('financeMainCategory').value;
-                const subCategory = document.getElementById('financeSubCategory').value;
-                const amount = parseFloat(document.getElementById('financeAmount').value);
-                const date = document.getElementById('financeDate').value;
-                const notes = document.getElementById('financeNotes').value;
-                
-                if (!this.currentCustomer.periods || this.currentCustomer.periods.length === 0) {
-                    alert('请先添加账期');
-                    return;
-                }
-                
-                // 找到对应的账期
-                const period = this.currentCustomer.periods.find(p => p.periodId === periodId);
-                
-                if (!period.financialStats) {
-                    period.financialStats = [];
-                }
-                
-                if (this.editingFinanceRecord) {
-                    // 更新现有记录
-                    const recordIndex = period.financialStats.findIndex(r => r.recordId === this.editingFinanceRecord.recordId);
-                    if (recordIndex !== -1) {
-                        period.financialStats[recordIndex] = {
-                            ...this.editingFinanceRecord,
-                            periodId: periodId,
-                            mainCategory: mainCategory,
-                            subCategory: subCategory,
-                            amount: amount,
-                            date: date,
-                            notes: notes
-                        };
-                    }
-                } else {
-                    // 添加新记录
-                    const newRecord = {
-                        recordId: `R${Date.now()}`,
-                        periodId: periodId,
-                        mainCategory: mainCategory,
-                        subCategory: subCategory,
-                        amount: amount,
-                        date: date,
-                        notes: notes
-                    };
-                    
-                    period.financialStats.push(newRecord);
-                }
-                
-                // 保存数据
-                await this.saveCustomerData();
-                
-                // 重新渲染财务图表
-                this.renderFinanceChart(this.currentCustomer);
-                
-                this.closeModal(document.getElementById('financeRecordModal'));
-                this.showSaveNotification();
-            },
-            
-            // 显示财务模态框 - 修改：支持显示订单记录详情
-            showFinanceModal(category) {
-                const modalBody = document.querySelector('#financeModal .modal-body');
-                const modalTitle = document.getElementById('financeModalTitle');
-                
-                // 修改：根据category设置不同的标题
-                if (category === '订单记录') {
-                    modalTitle.textContent = '订单记录详情';
-                } else {
-                    modalTitle.textContent = `${category} 财务记录详情`;
-                }
-                
-                // 收集当前客户所有账期的该分类财务记录
-                let financialStats = [];
-                if (this.currentCustomer.periods) {
-                    this.currentCustomer.periods.forEach(period => {
-                        if (period.financialStats) {
-                            period.financialStats.forEach(record => {
-                                // 修改：如果是订单记录，显示所有订单记录；否则显示指定子分类的记录
-                                if ((category === '订单记录' && record.mainCategory === '订单记录') || 
-                                    record.subCategory === category) {
-                                    financialStats.push({
-                                        ...record,
-                                        periodName: period.periodName
-                                    });
-                                }
-                            });
-                        }
-                    });
-                }
-                
-                if (financialStats.length === 0) {
-                    modalBody.innerHTML = `<p>暂无${category}记录</p>`;
-                } else {
-                    modalBody.innerHTML = `
-                        <table style="width: 100%;">
-                            <thead>
-                                <tr>
-                                    <th>账期</th>
-                                    <th>${category === '订单记录' ? '子分类' : '子分类'}</th>
-                                    <th>金额</th>
-                                    <th>日期</th>
-                                    <th>备注</th>
-                                    <th>操作</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${financialStats.map(record => `
-                                    <tr>
-                                        <td>${record.periodName}</td>
-                                        <td>${record.subCategory}</td>
-                                        <td>${record.amount}</td>
-                                        <td>${record.date}</td>
-                                        <td>${record.notes || ''}</td>
-                                        <td>
-                                            <button class="btn btn-primary btn-sm edit-finance-record" data-record-id="${record.recordId}">编辑</button>
-                                            <button class="btn btn-danger btn-sm delete-finance-record" data-record-id="${record.recordId}">删除</button>
-                                        </td>
-                                    </tr>
-                                `).join('')}
-                            </tbody>
-                        </table>
-                    `;
-                    
-                    // 绑定编辑和删除事件
-                    setTimeout(() => {
-                        document.querySelectorAll('.edit-finance-record').forEach(btn => {
-                            btn.addEventListener('click', (e) => {
-                                const recordId = e.target.getAttribute('data-record-id');
-                                this.editFinanceRecord(recordId);
-                            });
-                        });
-                        
-                        document.querySelectorAll('.delete-finance-record').forEach(btn => {
-                            btn.addEventListener('click', (e) => {
-                                const recordId = e.target.getAttribute('data-record-id');
-                                this.showDeleteConfirmModal(recordId);
-                            });
-                        });
-                    }, 0);
-                }
-                
-                document.getElementById('financeModal').classList.add('active');
-            },
-            
-            // 编辑财务记录
-            editFinanceRecord(recordId) {
-                // 在所有账期中查找记录
-                let targetRecord = null;
-                if (this.currentCustomer.periods) {
-                    this.currentCustomer.periods.forEach(period => {
-                        if (period.financialStats) {
-                            period.financialStats.forEach(record => {
-                                if (record.recordId === recordId) {
-                                    targetRecord = {
-                                        ...record,
-                                        periodId: period.periodId
-                                    };
-                                }
-                            });
-                        }
-                    });
-                }
-                
-                if (targetRecord) {
-                    this.showFinanceRecordModal(targetRecord);
-                    this.closeModal(document.getElementById('financeModal'));
-                }
-            },
-            
-            // 显示删除确认模态框
-            showDeleteConfirmModal(recordId) {
-                this.recordToDelete = recordId;
-                document.getElementById('deleteConfirmModal').classList.add('active');
-            },
-            
-            // 删除财务记录
-            async deleteFinanceRecord() {
-                if (!this.recordToDelete) return;
-                
-                // 在所有账期中查找并删除记录
-                if (this.currentCustomer.periods) {
-                    this.currentCustomer.periods.forEach(period => {
-                        if (period.financialStats) {
-                            const recordIndex = period.financialStats.findIndex(r => r.recordId === this.recordToDelete);
-                            if (recordIndex !== -1) {
-                                period.financialStats.splice(recordIndex, 1);
-                            }
-                        }
-                    });
-                }
-                
-                // 保存数据
-                await this.saveCustomerData();
-                
-                // 重新渲染财务图表
-                this.renderFinanceChart(this.currentCustomer);
-                
-                this.closeModal(document.getElementById('deleteConfirmModal'));
-                this.showSaveNotification();
-                
-                // 如果财务模态框是打开的，刷新它
-                if (document.getElementById('financeModal').classList.contains('active')) {
-                    this.closeModal(document.getElementById('financeModal'));
-                }
-            },
             
             // 显示导入指标模态框
             showImportIndicatorsModal() {
@@ -5258,52 +4613,6 @@ const token = localStorage.getItem('crm_token');
                 return '';
             },
             
-            // 导出财务Excel
-            async exportFinanceExcel() {
-                const data = await CustomerModel.loadData();
-                
-                // 收集所有财务记录
-                let allFinanceRecords = [];
-                data.customers.forEach(customer => {
-                    if (customer.periods) {
-                        customer.periods.forEach(period => {
-                            if (period.financialStats) {
-                                period.financialStats.forEach(record => {
-                                    allFinanceRecords.push({
-                                        customerName: customer.personalInfo.name,
-                                        date: record.date,
-                                        mainCategory: record.mainCategory,
-                                        subCategory: record.subCategory,
-                                        amount: record.amount,
-                                        notes: record.notes || ''
-                                    });
-                                });
-                            }
-                        });
-                    }
-                });
-                
-                // 按日期排序
-                allFinanceRecords.sort((a, b) => new Date(a.date) - new Date(b.date));
-                
-                // 生成CSV内容（添加BOM头解决中文乱码问题）
-                let csvContent = "\uFEFF客户名,日期,主分类,子分类,金额,备注\n";
-                
-                allFinanceRecords.forEach(record => {
-                    csvContent += `"${record.customerName}","${record.date}","${record.mainCategory}","${record.subCategory}",${record.amount},"${record.notes}"\n`;
-                });
-                
-                // 创建Blob并下载
-                const blob = new Blob([csvContent], {type: 'text/csv;charset=utf-8;'});
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `财务记录_${new Date().toISOString().split('T')[0]}.csv`;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-            },
             
             // 导出指标对比Excel
             async exportIndicatorsExcel() {
